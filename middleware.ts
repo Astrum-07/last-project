@@ -5,11 +5,21 @@ export function middleware(request: NextRequest) {
   const token = request.cookies.get("token")?.value;
   const { pathname } = request.nextUrl;
 
-  if (!token && pathname !== "/login") {
+  const isLoginPage = pathname === "/login";
+  const isPublicFile = pathname.startsWith("/_next") || pathname.startsWith("/api");
+
+
+  if (isPublicFile) {
+    return NextResponse.next();
+  }
+
+
+  if (!token && !isLoginPage) {
     return NextResponse.redirect(new URL("/login", request.url));
   }
 
-  if (token && pathname === "/login") {
+
+  if (token && isLoginPage) {
     return NextResponse.redirect(new URL("/", request.url));
   }
 
@@ -17,5 +27,8 @@ export function middleware(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
+  matcher: [
+
+    "/((?!api|_next/static|_next/image|favicon.ico).*)",
+  ],
 };
