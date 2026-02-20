@@ -1,20 +1,19 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
-export const runtime = 'edge';
-
 export function middleware(request: NextRequest) {
   const token = request.cookies.get('token')?.value;
   const { pathname } = request.nextUrl;
 
+
   if (
     pathname.startsWith('/_next') || 
-    pathname.startsWith('/static') ||
-    pathname.includes('.') ||
-    pathname === '/favicon.ico'
+    pathname.includes('.') || 
+    pathname.startsWith('/api')
   ) {
     return NextResponse.next();
   }
+
 
   if (!token && pathname !== '/login') {
     return NextResponse.redirect(new URL('/login', request.url));
