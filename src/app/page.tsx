@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import Cookies from "js-cookie";
-import { LogOut, User as UserIcon, Mail, ShieldCheck, Calendar } from "lucide-react";
+import { LogOut, Mail, ShieldCheck } from "lucide-react";
 
 export default function Dashboard() {
   const router = useRouter();
@@ -11,13 +11,12 @@ export default function Dashboard() {
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
-    // Refresh bo'lganda localStorage-dan ma'lumotni o'qish
     const data = localStorage.getItem("user");
     if (data) {
       try {
         setUser(JSON.parse(data));
       } catch (e) {
-        console.error("User parse error", e);
+        console.error(e);
       }
     }
     setIsReady(true);
@@ -31,7 +30,6 @@ export default function Dashboard() {
     router.refresh();
   };
 
-  // Sahifa o'qib bo'lingunicha kutish (404/500 oldini oladi)
   if (!isReady) return (
     <div className="min-h-screen bg-white flex items-center justify-center font-black animate-pulse">
       YUKLANMOQDA...
@@ -43,8 +41,6 @@ export default function Dashboard() {
   return (
     <div className="min-h-screen bg-[#f1f1f1] p-4 md:p-10 font-mono text-black">
       <div className="max-w-4xl mx-auto space-y-6">
-        
-        {/* NAV */}
         <header className="bg-white border-[4px] border-black p-5 shadow-[8px_8px_0px_0px_rgba(0,0,0,1)] flex justify-between items-center">
           <h1 className="text-xl font-black uppercase italic tracking-tighter">CRM.ADMIN</h1>
           <button onClick={handleLogout} className="bg-red-500 text-white border-[3px] border-black px-4 py-2 font-black uppercase text-[10px] shadow-[4px_4px_0px_0px_rgba(0,0,0,1)]">
@@ -52,12 +48,11 @@ export default function Dashboard() {
           </button>
         </header>
 
-        {/* PROFILE CARD */}
         <div className="bg-white border-[4px] border-black shadow-[12px_12px_0px_0px_rgba(0,0,0,1)]">
           <div className="bg-yellow-400 border-b-[4px] border-black p-8 flex items-center gap-6">
             <img 
               src={user.image || "https://via.placeholder.com/150"} 
-              className="w-24 h-24 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] object-cover"
+              className="w-24 h-24 border-4 border-black shadow-[4px_4px_0px_0px_rgba(0,0,0,1)] object-cover bg-white"
               alt="Avatar"
             />
             <div>
@@ -72,14 +67,13 @@ export default function Dashboard() {
 
           <div className="p-8 grid grid-cols-1 md:grid-cols-2 gap-6">
             <div className="border-2 border-black p-4 bg-blue-50 flex items-center gap-4">
-              <Mail /> <span className="font-bold">{user.email}</span>
+              <Mail size={20} /> <span className="font-bold">{user.email}</span>
             </div>
             <div className="border-2 border-black p-4 bg-green-50 flex items-center gap-4">
-              <ShieldCheck /> <span className="font-bold uppercase tracking-tighter">Active System Access</span>
+              <ShieldCheck size={20} /> <span className="font-bold uppercase tracking-tighter">Active System Access</span>
             </div>
           </div>
         </div>
-
       </div>
     </div>
   );
