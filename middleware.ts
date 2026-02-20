@@ -2,8 +2,8 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 /**
- * Next.js 16 Edge Runtime-da ishlayotganini qat'iy belgilaymiz.
- * Bu __dirname yoki boshqa Node.js xatolarini oldini olishga yordam beradi.
+ * Next.js Edge Runtime-ni qat'iy belgilaymiz.
+ * Bu Node.js modullari (fs, path, __dirname) bilan bog'liq xatolarni oldini oladi.
  */
 export const runtime = 'experimental-edge';
 
@@ -11,29 +11,31 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // 1. Cookiedan tokenni olish
-  // Eslatma: Middleware-da faqat 'request.cookies' ishlatish shart!
   const token = request.cookies.get('token')?.value;
 
   // 2. Statik fayllarni va API yo'llarini filtrdan o'tkazish
-  // Bu qator rasmlar (.png, .jpg), shriftlar va favicon uchun 500/404 xatolarini oldini oladi
+  // Bu qator rasmlar, shriftlar va favicon middleware orqali o'tib ketishini ta'minlaydi.
+  // Shunda loglardagi 500/404 xatoliklar to'xtaydi.
   if (
     pathname.startsWith('/_next') || 
     pathname.startsWith('/api') ||
     pathname.startsWith('/static') ||
-    pathname.includes('.') || // Barcha fayl kengaytmali yo'llar (.png, .svg, .ico)
-    pathname === '/favicon.ico'
+    pathname.includes('.') || 
+    pathname === '/favicon.ico' ||
+    pathname === '/favicon.png'
   ) {
     return NextResponse.next();
   }
 
-  // 3. Login bo'lmagan foydalanuvchini login sahifasiga yo'naltirish
+  // 3. Login bo'lmagan foydalanuvchini himoya qilish
+  // Agar token bo'lmasa va foydalanuvchi login sahifasida bo'lmasa -> login'ga yuborish
   if (!token && pathname !== '/login') {
     const loginUrl = new URL('/login', request.url);
-    // Xavfsizlik uchun: Redirect qilinganda login sahifasiga borganini aniq bilish
     return NextResponse.redirect(loginUrl);
   }
 
   // 4. Login bo'lgan foydalanuvchini login sahifasiga kiritmaslik
+  // Agar token bo'lsa va foydalanuvchi login'ga kirmoqchi bo'lsa -> asosiy sahifaga yuborish
   if (token && pathname === '/login') {
     const homeUrl = new URL('/', request.url);
     return NextResponse.redirect(homeUrl);
@@ -43,18 +45,18 @@ export function middleware(request: NextRequest) {
 }
 
 /**
- * Matcher - middleware qaysi yo'llarda ishlashi kerakligini belgilaydi.
- * Bu yerda barcha ichki Next.js fayllari va rasmlar chiqarib tashlangan.
+ * Matcher sozlamasi:
+ * Middleware qaysi yo'llarda ishga tushishini belgilaydi.
  */
 export const config = {
   matcher: [
     /*
-     * Quyidagilar bilan boshlanmaydigan barcha yo'llarni tekshirish:
-     * - api (API routes)
+     * Quyidagi yo'llardan boshqa hamma joyda ishla:
+     * - api (API yo'llari)
      * - _next/static (statik fayllar)
-     * - _next/image (rasm optimizatsiyasi)
-     * - favicon.ico (sayt ikonkasi)
-     * - hamma rasm va statik fayllar (.png, .jpg va h.k.)
+     * - _next/image (rasmlar)
+     * - favicon.ico (sayt belgisi)
+     * - barcha nuqtali fayllar (.png, .jpg, .svg va h.k.)
      */
     '/((?!api|_next/static|_next/image|favicon.ico|.*\\..*).*)',
   ],
