@@ -1,46 +1,38 @@
+// src/middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  // 1. Cookiedan tokenni olish (Faqat shu usul ishlaydi!)
-  const token = request.cookies.get('token')?.value;
   const { pathname } = request.nextUrl;
+  
+  // 1. Cookiedan tokenni olish (Next.js-ning o'z funksiyasi)
+  // Hech qanday 'js-cookie' yoki boshqa kutubxona ishlatmang!
+  const token = request.cookies.get('token')?.value;
 
-  // 2. Statik fayllarni (favicon, rasmlar va h.k.) tekshirmaslik uchun
-  // Bu qator xatolikni oldini oladi
+  // 2. Statik fayllarni tekshiruvdan o'tkazib yuborish
+  // Favicon, rasmlar, css va js fayllar middleware'ni crash qilmasligi uchun
   if (
     pathname.startsWith('/_next') || 
-    pathname.startsWith('/api') || 
-    pathname.includes('.')
+    pathname.includes('.') || 
+    pathname.startsWith('/api')
   ) {
     return NextResponse.next();
   }
 
-  // 3. Agar token bo'lmasa va login sahifasida bo'lmasa -> Loginga yuborish
+  // 3. Login bo'lmagan foydalanuvchini himoya qilish
   if (!token && pathname !== '/login') {
-    const loginUrl = new URL('/login', request.url);
-    return NextResponse.redirect(loginUrl);
+    return NextResponse.redirect(new URL('/login', request.url));
   }
 
-  // 4. Agar token bo'lsa va login sahifasiga kirmoqchi bo'lsa -> Dashboardga yuborish
+  // 4. Login bo'lgan foydalanuvchini login sahifasiga kiritmaslik
   if (token && pathname === '/login') {
-    const homeUrl = new URL('/', request.url);
-    return NextResponse.redirect(homeUrl);
+    return NextResponse.redirect(new URL('/', request.url));
   }
 
   return NextResponse.next();
 }
 
-// Matcher qismini ham mana bunday aniq yozing
+// Matcher sozlamasi
 export const config = {
-  matcher: [
-    /*
-     * Barcha sahifalarni tekshirish, lekin quyidagilarni o'tkazib yuborish:
-     * - api yo'llari
-     * - _next/static (static fayllar)
-     * - _next/image (rasmlar)
-     * - favicon.ico
-     */
-    '/((?!api|_next/static|_next/image|favicon.ico).*)',
-  ],
+  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
 };
