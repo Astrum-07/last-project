@@ -1,9 +1,9 @@
 import type { Metadata } from "next";
-import { Inter } from "next/font/google";
 import "./globals.css";
 import QueryProvider from "@/providers/QueryProvider";
 
-const inter = Inter({ subsets: ["latin"] });
+// Google Font xatosi bo'lsa, uni import qilmasdan 
+// quyidagi metadata va oddiy body klassidan foydalanamiz
 
 export const metadata: Metadata = {
   title: "Admin CRM System",
@@ -16,13 +16,15 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    // suppressHydrationWarning - brauzer extensionlari sabab bo'ladigan hydration xatosini to'xtatadi
     <html lang="uz" suppressHydrationWarning>
-      <body className={inter.className} suppressHydrationWarning>
+      {/* 
+        Google font xato bersa, body'ga 'font-sans' klassini bering. 
+        Tailwind avtomatik ravishda Inter yoki tizim shriftini qo'yadi.
+      */}
+      <body className="antialiased font-sans" suppressHydrationWarning>
         <QueryProvider>
           {children}
         </QueryProvider>
-{/* rwknbo */}
       </body>
     </html>
   );
