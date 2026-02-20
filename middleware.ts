@@ -2,24 +2,45 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function middleware(request: NextRequest) {
-  // Cookiedan tokenni olish
+  // 1. Cookiedan tokenni olish (Faqat shu usul ishlaydi!)
   const token = request.cookies.get('token')?.value;
   const { pathname } = request.nextUrl;
 
-  // 1. Agar foydalanuvchi login qilmagan bo'lsa va login sahifasida bo'lmasa
-  if (!token && pathname !== '/login') {
-    return NextResponse.redirect(new URL('/login', request.url));
+  // 2. Statik fayllarni (favicon, rasmlar va h.k.) tekshirmaslik uchun
+  // Bu qator xatolikni oldini oladi
+  if (
+    pathname.startsWith('/_next') || 
+    pathname.startsWith('/api') || 
+    pathname.includes('.')
+  ) {
+    return NextResponse.next();
   }
 
-  // 2. Agar foydalanuvchi login qilgan bo'lsa va login sahifasiga kirmoqchi bo'lsa
+  // 3. Agar token bo'lmasa va login sahifasida bo'lmasa -> Loginga yuborish
+  if (!token && pathname !== '/login') {
+    const loginUrl = new URL('/login', request.url);
+    return NextResponse.redirect(loginUrl);
+  }
+
+  // 4. Agar token bo'lsa va login sahifasiga kirmoqchi bo'lsa -> Dashboardga yuborish
   if (token && pathname === '/login') {
-    return NextResponse.redirect(new URL('/', request.url));
+    const homeUrl = new URL('/', request.url);
+    return NextResponse.redirect(homeUrl);
   }
 
   return NextResponse.next();
 }
 
-// Barcha sahifalarni himoya qilish (api va static fayllardan tashqari)
+// Matcher qismini ham mana bunday aniq yozing
 export const config = {
-  matcher: ['/((?!api|_next/static|_next/image|favicon.ico).*)'],
+  matcher: [
+    /*
+     * Barcha sahifalarni tekshirish, lekin quyidagilarni o'tkazib yuborish:
+     * - api yo'llari
+     * - _next/static (static fayllar)
+     * - _next/image (rasmlar)
+     * - favicon.ico
+     */
+    '/((?!api|_next/static|_next/image|favicon.ico).*)',
+  ],
 };
