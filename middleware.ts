@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 // MUHIM: Bu qator __dirname xatosini oldini oladi
-export const runtime = 'edge'; 
+export const runtime = 'edge';
 
 export function middleware(request: NextRequest) {
   // Cookie'dan tokenni olish
