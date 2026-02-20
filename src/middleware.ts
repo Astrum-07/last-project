@@ -1,4 +1,3 @@
-// src/middleware.ts
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
@@ -6,27 +5,29 @@ export function middleware(request: NextRequest) {
   const { pathname } = request.nextUrl;
   
   // 1. Cookiedan tokenni olish (Next.js-ning o'z funksiyasi)
-  // Hech qanday 'js-cookie' yoki boshqa kutubxona ishlatmang!
   const token = request.cookies.get('token')?.value;
 
-  // 2. Statik fayllarni tekshiruvdan o'tkazib yuborish
-  // Favicon, rasmlar, css va js fayllar middleware'ni crash qilmasligi uchun
+  // 2. Statik fayllarni va API yo'llarini tekshirmaslik
+  // Bu qator rasmlar yoki CSS yuklanganda Middleware crash bo'lishini oldini oladi
   if (
     pathname.startsWith('/_next') || 
-    pathname.includes('.') || 
-    pathname.startsWith('/api')
+    pathname.startsWith('/api') || 
+    pathname.includes('.') ||
+    pathname === '/favicon.ico'
   ) {
     return NextResponse.next();
   }
 
   // 3. Login bo'lmagan foydalanuvchini himoya qilish
   if (!token && pathname !== '/login') {
-    return NextResponse.redirect(new URL('/login', request.url));
+    const loginUrl = new URL('/login', request.url);
+    return NextResponse.redirect(loginUrl);
   }
 
   // 4. Login bo'lgan foydalanuvchini login sahifasiga kiritmaslik
   if (token && pathname === '/login') {
-    return NextResponse.redirect(new URL('/', request.url));
+    const homeUrl = new URL('/', request.url);
+    return NextResponse.redirect(homeUrl);
   }
 
   return NextResponse.next();
